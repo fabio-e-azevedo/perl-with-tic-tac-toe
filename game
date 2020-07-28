@@ -1,0 +1,81 @@
+#!/usr/bin/perl
+ 
+use strict;
+use warnings;
+ 
+use feature 'state';
+ 
+use constant MARKS=>[ 'X', 'O' ];
+use constant HAL9K=>'O';
+use constant BOARD=>'
+┌───┬───┬───┐
+│ 1 │ 2 │ 3 │
+├───┼───┼───┤
+│ 4 │ 5 │ 6 │
+├───┼───┼───┤
+│ 7 │ 8 │ 9 │
+└───┴───┴───┘
+';
+ 
+use lib 'hal';
+use if -e 'hal/chip1.pm', 'chip1';
+use if -e 'hal/chip2.pm', 'chip2';
+use if -e 'hal/chip3.pm', 'chip3';
+ 
+sub get_mark {
+   my $game = shift;
+   my @nums = $game =~ /[1-9]/g;
+   my $indx = (@nums+1) % 2;
+ 
+   return MARKS->[$indx];
+}
+ 
+sub put_mark {
+   my $game = shift;
+   my $mark = shift;
+   my $move = shift;
+ 
+   $game =~ s/$move/$mark/;
+ 
+   return $game;
+}
+ 
+sub get_move {
+   return (<> =~ /^[1-9]$/) ? $& : '0';
+}
+ 
+PROMPT: {
+   no strict;
+   no warnings;
+
+   state $game = BOARD;
+ 
+   my $mark;
+   my $move;
+   
+   print $game;
+ 
+   if (defined &get_victor) {
+      my $victor = get_victor $game, MARKS;
+      if (defined $victor) {
+         print "$victor wins!\n";
+         complain if ($victor ne HAL9K);
+         last PROMPT;
+      }
+   }
+ 
+   last PROMPT if ($game !~ /[1-9]/);
+ 
+   $mark = get_mark $game;
+   print "$mark\'s move?: ";
+ 
+   if ($mark eq HAL9K and defined &hal_move) {
+      $move = hal_move $game, $mark, MARKS;
+      print "$move\n";
+   } else {
+      $move = get_move;
+   }
+   $game = put_mark $game, $mark, $move;
+ 
+   redo PROMPT;
+}
