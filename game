@@ -1,5 +1,8 @@
 #!/usr/bin/perl
  
+use Term::ANSIScreen qw(cls);
+my $clear_screen = cls();
+
 use strict;
 use warnings;
  
@@ -52,7 +55,8 @@ PROMPT: {
  
    my $mark;
    my $move;
-   
+
+   print $clear_screen;
    print $game;
  
    if (defined &get_victor) {
